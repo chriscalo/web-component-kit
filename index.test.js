@@ -1,8 +1,10 @@
 import { test, describe } from 'node:test';
 import { chromium } from 'playwright';
-import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { createServer } from 'node:http';
+import { readFileSync } from 'node:fs';
+import { join, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import assert from 'node:assert';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,34 +14,44 @@ describe('Web Component Kit Tests', async () => {
   let server;
   let browser;
   let page;
-  const port = 3001;
   
-  // Start the HTTP server
-  server = spawn('npx', ['http-server', '-p', port.toString()], {
-    cwd: __dirname,
-    stdio: 'pipe'
+  // Start local server
+  server = createServer((req, res) => {
+    let filePath = req.url === '/' ? 'index.html' : req.url.slice(1);
+    filePath = filePath.split('?')[0];
+    
+    const fullPath = join(__dirname, filePath);
+    const ext = extname(fullPath);
+    const contentType = ext === '.js' ? 'application/javascript' : 
+                      ext === '.html' ? 'text/html' : 
+                      ext === '.css' ? 'text/css' :
+                      'text/plain';
+    
+    try {
+      const content = readFileSync(fullPath);
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content);
+    } catch (err) {
+      res.writeHead(404);
+      res.end('Not found');
+    }
   });
-  
-  // Wait for server to be ready
-  await new Promise((resolve) => {
-    server.stdout.on('data', (data) => {
-      if (data.toString().includes('Available on:')) {
-        resolve();
-      }
+
+  const port = await new Promise((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      resolve(server.address().port);
     });
-    setTimeout(resolve, 2000);
   });
   
-  // Launch browser
-  browser = await chromium.launch();
+  // Launch browser in headless mode
+  browser = await chromium.launch({ headless: true });
   
   // Cleanup function
   const cleanup = async () => {
     if (page) await page.close();
     if (browser) await browser.close();
     if (server) {
-      server.kill();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => server.close(resolve));
     }
   };
   
@@ -104,4 +116,8 @@ describe('Web Component Kit Tests', async () => {
     });
   });
   
+  // Final cleanup
+  test('cleanup', async () => {
+    await cleanup();
+  });
 });
