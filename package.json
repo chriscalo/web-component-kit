@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test --no-warnings index.test.js",
-    "start": "npx http-server -p 3000 -o"
+    "start": "npx http-server -p 3000 -o -d false"
   },
   "keywords": [
     "web-components",
