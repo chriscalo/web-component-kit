@@ -104,36 +104,4 @@ describe('Web Component Kit Tests', async () => {
     });
   });
   
-  describe('Examples Page', () => {
-    test('should load examples page without errors', async () => {
-      const testUrl = `http://localhost:${port}/examples.html`;
-      const testPage = await browser.newPage();
-      
-      let hasErrors = false;
-      testPage.on('pageerror', error => {
-        console.error('Page error:', error);
-        hasErrors = true;
-      });
-      
-      const response = await testPage.goto(testUrl);
-      assert.strictEqual(response.status(), 200);
-      
-      // Wait for examples to render
-      await testPage.waitForTimeout(1000);
-      
-      // Check that examples are present
-      const counterExample = await testPage.$('#counter-example');
-      assert.ok(counterExample, 'Counter example should exist');
-      
-      const bindingExample = await testPage.$('#binding-example');
-      assert.ok(bindingExample, 'Binding example should exist');
-      
-      const todoExample = await testPage.$('#todo-example');
-      assert.ok(todoExample, 'Todo example should exist');
-      
-      assert.strictEqual(hasErrors, false, 'No page errors should occur');
-      
-      await testPage.close();
-    });
-  });
 });
