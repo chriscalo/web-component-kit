@@ -1,0 +1,126 @@
+<!-- Icon sprite container -->
+<div name="icon-sprite" style="display: none;"></div>
+
+<!-- Component template -->
+<template name="ui-icon">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    role="presentation"
+  >
+    <use [href]="iconHref"></use>
+  </svg>
+</template>
+
+<!-- Component styles -->
+<style name="ui-icon">
+  ui-icon {
+    display: grid;
+    place-items: center;
+    width: calc(var(--size, 24) * 1rem / 16);
+    height: calc(var(--size, 24) * 1rem / 16);
+    color: var(--color, currentColor);
+    opacity: 0.75;
+    
+    & svg {
+      stroke-width: var(--stroke-width, 2);
+      fill: none;
+      stroke: currentColor;
+    }
+  }
+</style>
+
+<!-- Component script -->
+<script type="module">
+  import { bindTemplate, parseToFragment, updateIDs, fetchText } from './index.js';
+  
+  // Load icon sprite
+  async function loadIconSprite() {
+    const url = "https://cdn.jsdelivr.net/npm/lucide-static@latest/sprite.svg";
+    const svgSprite = await fetchText(url);
+    const iconSpriteHTML = `<div name="icon-sprite">${svgSprite}</div>`;
+    const iconSpriteFragment = parseToFragment(iconSpriteHTML);
+    const namespacedFragment = updateIDs(iconSpriteFragment);
+    
+    document.head.appendChild(namespacedFragment);
+  }
+  
+  // UI Icon Web Component
+  export class UiIcon extends HTMLElement {
+    static template = document.querySelector(`template[name="ui-icon"]`);
+    
+    static defaults = {
+      library: "lucide",
+      type: "filled",
+      size: "24",
+      color: "currentColor",
+      strokeWidth: "2",
+    };
+    
+    static get observedAttributes() {
+      return ["library", "name", "type", "size", "stroke-width", "color"];
+    }
+    
+    get library() {
+      return this.getAttribute("library") ?? UiIcon.defaults.library;
+    }
+    
+    get name() {
+      return this.getAttribute("name");
+    }
+    
+    get type() {
+      return this.getAttribute("type") ?? UiIcon.defaults.type;
+    }
+
+    get size() {
+      return this.getAttribute("size") ?? UiIcon.defaults.size;
+    }
+    
+    get color() {
+      return this.getAttribute("color") ?? UiIcon.defaults.color;
+    }
+    
+    get strokeWidth() {
+      return this.getAttribute("stroke-width") ?? UiIcon.defaults.strokeWidth;
+    }
+    
+    get iconHref() {
+      return `#${this.library}-${this.name}`;
+    }
+    
+    async connectedCallback() {
+      this.setStyleValues();
+      
+      // Use template binding system
+      const render = bindTemplate(UiIcon.template, this);
+      this.render = render;
+      render();
+    }
+    
+    attributeChangedCallback() {
+      this.setStyleValues();
+      if (this.render) this.render();
+    }
+    
+    setStyleValues() {
+      const defaults = UiIcon.defaults;
+      
+      const size = this.getAttribute("size") ?? defaults.size;
+      this.style.setProperty("--size", size);
+      
+      const color = this.getAttribute("color") ?? defaults.color;
+      this.style.setProperty("--color", color);
+      
+      const strokeWidth = this.getAttribute("stroke-width") ?? defaults.strokeWidth;
+      this.style.setProperty("--stroke-width", strokeWidth);
+    }
+  }
+  
+  // Load sprite and register component
+  await loadIconSprite();
+  customElements.define("ui-icon", UiIcon);
+  
+  // Export for use in other modules
+  window.UiIcon = UiIcon;
+</script>

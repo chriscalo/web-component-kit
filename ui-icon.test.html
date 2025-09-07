@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Icon Component Tests</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-result {
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.5rem;
+      background: #f5f5f5;
+    }
+    .test-result.pass {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+    }
+    .test-result.fail {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+    .icon-demo {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>UI Icon Component Tests</h1>
+  <div id="test-output"></div>
+  
+  <h2>Icon Demos</h2>
+  <div id="icon-demos"></div>
+  
+  <!-- Include the ui-icon component -->
+  <wck-include src="./ui-icon.component.html"></wck-include>
+  
+  <script type="module">
+    import { componentsReady, processIncludes } from './index.js';
+    
+    // Simple test framework
+    class TestRunner {
+      constructor() {
+        this.tests = [];
+        this.results = [];
+      }
+      
+      test(name, fn) {
+        this.tests.push({ name, fn });
+      }
+      
+      async run() {
+        const output = document.getElementById('test-output');
+        output.innerHTML = '';
+        
+        for (const test of this.tests) {
+          const result = { name: test.name };
+          const startTime = performance.now();
+          
+          try {
+            await test.fn();
+            result.status = 'pass';
+            result.time = performance.now() - startTime;
+            console.log(`✅ ${test.name}`);
+          } catch (error) {
+            result.status = 'fail';
+            result.error = error.message;
+            result.time = performance.now() - startTime;
+            console.error(`❌ ${test.name}:`, error);
+          }
+          
+          this.results.push(result);
+          this.displayResult(result, output);
+        }
+        
+        this.displaySummary();
+      }
+      
+      displayResult(result, output) {
+        const div = document.createElement('div');
+        div.className = `test-result ${result.status}`;
+        div.innerHTML = `
+          <strong>${result.status === 'pass' ? '✅' : '❌'} ${result.name}</strong>
+          ${result.error ? `<br><code>${result.error}</code>` : ''}
+          <small>(${result.time.toFixed(2)}ms)</small>
+        `;
+        output.appendChild(div);
+      }
+      
+      displaySummary() {
+        const passed = this.results.filter(r => r.status === 'pass').length;
+        const failed = this.results.filter(r => r.status === 'fail').length;
+        const total = this.results.length;
+        
+        console.log(`\n📊 Test Summary: ${passed}/${total} passed, ${failed} failed`);
+      }
+    }
+    
+    const assert = {
+      equal(actual, expected, message) {
+        if (actual !== expected) {
+          throw new Error(message || `Expected ${expected}, got ${actual}`);
+        }
+      },
+      ok(value, message) {
+        if (!value) {
+          throw new Error(message || `Expected truthy value, got ${value}`);
+        }
+      },
+      includes(str, substring, message) {
+        if (!str.includes(substring)) {
+          throw new Error(message || `Expected "${str}" to include "${substring}"`);
+        }
+      }
+    };
+    
+    // Initialize test runner
+    const runner = new TestRunner();
+    const test = (name, fn) => runner.test(name, fn);
+    
+    // Process includes (loads ui-icon component)
+    await processIncludes();
+    
+    // Wait for component to be defined
+    await componentsReady("ui-icon");
+    
+    // Test: Component Registration
+    test('ui-icon component is registered', () => {
+      const UiIcon = customElements.get('ui-icon');
+      assert.ok(UiIcon);
+      const icon = document.createElement('ui-icon');
+      assert.ok(icon instanceof UiIcon);
+    });
+    
+    // Test: Default Attributes
+    test('ui-icon has correct default attributes', () => {
+      const icon = document.createElement('ui-icon');
+      assert.equal(icon.library, 'lucide');
+      assert.equal(icon.type, 'filled');
+      assert.equal(icon.size, '24');
+      assert.equal(icon.color, 'currentColor');
+      assert.equal(icon.strokeWidth, '2');
+    });
+    
+    // Test: Custom Attributes
+    test('ui-icon accepts custom attributes', () => {
+      const icon = document.createElement('ui-icon');
+      icon.setAttribute('name', 'home');
+      icon.setAttribute('size', '32');
+      icon.setAttribute('color', 'red');
+      icon.setAttribute('stroke-width', '3');
+      
+      assert.equal(icon.name, 'home');
+      assert.equal(icon.size, '32');
+      assert.equal(icon.color, 'red');
+      assert.equal(icon.strokeWidth, '3');
+    });
+    
+    // Test: Icon Href Generation
+    test('ui-icon generates correct href', () => {
+      const icon = document.createElement('ui-icon');
+      icon.setAttribute('name', 'search');
+      assert.equal(icon.iconHref, '#lucide-search');
+      
+      icon.setAttribute('library', 'custom');
+      icon.setAttribute('name', 'star');
+      assert.equal(icon.iconHref, '#custom-star');
+    });
+    
+    // Test: Style Properties
+    test('ui-icon sets CSS custom properties', async () => {
+      const icon = document.createElement('ui-icon');
+      icon.setAttribute('name', 'settings');
+      icon.setAttribute('size', '48');
+      icon.setAttribute('color', 'blue');
+      icon.setAttribute('stroke-width', '1');
+      
+      document.body.appendChild(icon);
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      assert.equal(icon.style.getPropertyValue('--size'), '48');
+      assert.equal(icon.style.getPropertyValue('--color'), 'blue');
+      assert.equal(icon.style.getPropertyValue('--stroke-width'), '1');
+      
+      document.body.removeChild(icon);
+    });
+    
+    // Test: SVG Rendering
+    test('ui-icon renders SVG element', async () => {
+      const icon = document.createElement('ui-icon');
+      icon.setAttribute('name', 'user');
+      
+      document.body.appendChild(icon);
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      const svg = icon.querySelector('svg');
+      assert.ok(svg, 'SVG element should exist');
+      assert.equal(svg.getAttribute('viewBox'), '0 0 24 24');
+      assert.equal(svg.getAttribute('role'), 'presentation');
+      
+      const use = svg.querySelector('use');
+      assert.ok(use, 'Use element should exist');
+      assert.includes(use.getAttribute('href'), 'lucide-user');
+      
+      document.body.removeChild(icon);
+    });
+    
+    // Test: Attribute Changes Update Component
+    test('ui-icon updates on attribute change', async () => {
+      const icon = document.createElement('ui-icon');
+      icon.setAttribute('name', 'home');
+      icon.setAttribute('size', '24');
+      
+      document.body.appendChild(icon);
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      assert.equal(icon.style.getPropertyValue('--size'), '24');
+      
+      icon.setAttribute('size', '36');
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      assert.equal(icon.style.getPropertyValue('--size'), '36');
+      
+      document.body.removeChild(icon);
+    });
+    
+    // Create demo icons
+    function createDemos() {
+      const demoContainer = document.getElementById('icon-demos');
+      
+      const icons = [
+        { name: 'home', size: '24', color: 'black' },
+        { name: 'search', size: '32', color: 'blue' },
+        { name: 'settings', size: '48', color: 'green' },
+        { name: 'user', size: '16', color: 'red' },
+        { name: 'mail', size: '24', color: 'purple', strokeWidth: '1' },
+        { name: 'heart', size: '32', color: 'pink', strokeWidth: '3' }
+      ];
+      
+      icons.forEach(config => {
+        const demo = document.createElement('div');
+        demo.className = 'icon-demo';
+        
+        const icon = document.createElement('ui-icon');
+        Object.entries(config).forEach(([key, value]) => {
+          if (key === 'strokeWidth') {
+            icon.setAttribute('stroke-width', value);
+          } else {
+            icon.setAttribute(key, value);
+          }
+        });
+        
+        const label = document.createElement('span');
+        label.textContent = `${config.name} (${config.size}px, ${config.color})`;
+        
+        demo.appendChild(icon);
+        demo.appendChild(label);
+        demoContainer.appendChild(demo);
+      });
+    }
+    
+    // Run all tests
+    await runner.run();
+    
+    // Create demos after tests
+    createDemos();
+  </script>
+</body>
+</html>

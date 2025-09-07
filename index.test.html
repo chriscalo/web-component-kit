@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Component Kit - Core Tests</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-result {
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.5rem;
+      background: #f5f5f5;
+    }
+    .test-result.pass {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+    }
+    .test-result.fail {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+    section[name="ui-test-sandbox"] {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+  <h1>Web Component Kit - Core Tests</h1>
+  <div id="test-output"></div>
+  
+  <!-- Test sandbox for UI tests -->
+  <section name="ui-test-sandbox"></section>
+  
+  <!-- Test templates -->
+  <template id="interpolation-test">
+    <div>Hello {{ name }}!</div>
+    <div>Count: {{ count }}</div>
+  </template>
+  
+  <template id="property-binding-test">
+    <input .value="inputValue" type="text">
+    <button .disabled="isDisabled">Click me</button>
+  </template>
+  
+  <template id="event-binding-test">
+    <button on:click="handleClick()">Click me</button>
+    <input on:input="handleInput(event)" type="text">
+  </template>
+  
+  <template id="attribute-binding-test">
+    <div [title]="tooltipText">Hover me</div>
+    <div [class]="className">Styled</div>
+  </template>
+  
+  <template id="conditional-test">
+    <div @if="showElement">I am visible</div>
+    <div @if="!showElement">I am hidden</div>
+  </template>
+  
+  <template id="two-way-binding-test">
+    <input .value:input="modelValue" type="text">
+  </template>
+  
+  <template id="list-rendering-test">
+    <ul>
+      <li @for="item in items">{{ item.name }}: {{ item.value }}</li>
+    </ul>
+  </template>
+  
+  <template id="complex-test">
+    <div>
+      <h2>{{ title }}</h2>
+      <input .value="searchTerm" on:input="updateSearch(event)">
+      <ul>
+        <li @for="result in filteredResults">
+          <span [title]="result.description">{{ result.name }}</span>
+          <button on:click="selectItem(result)" .disabled="result.disabled">
+            Select
+          </button>
+        </li>
+      </ul>
+      <div @if="selectedItem">
+        Selected: {{ selectedItem.name }}
+      </div>
+    </div>
+  </template>
+  
+  <script type="module">
+    import { 
+      bindTemplate, 
+      reactive,
+      parseToFragment,
+      updateIDs,
+      fetchText,
+      componentsReady
+    } from './index.js';
+    
+    // Simple test framework
+    class TestRunner {
+      constructor() {
+        this.tests = [];
+        this.results = [];
+      }
+      
+      test(name, fn) {
+        this.tests.push({ name, fn });
+      }
+      
+      async run() {
+        const output = document.getElementById('test-output');
+        output.innerHTML = '';
+        
+        for (const test of this.tests) {
+          const result = { name: test.name };
+          const startTime = performance.now();
+          
+          try {
+            await test.fn();
+            result.status = 'pass';
+            result.time = performance.now() - startTime;
+            console.log(`✅ ${test.name}`);
+          } catch (error) {
+            result.status = 'fail';
+            result.error = error.message;
+            result.time = performance.now() - startTime;
+            console.error(`❌ ${test.name}:`, error);
+          }
+          
+          this.results.push(result);
+          this.displayResult(result, output);
+        }
+        
+        this.displaySummary();
+      }
+      
+      displayResult(result, output) {
+        const div = document.createElement('div');
+        div.className = `test-result ${result.status}`;
+        div.innerHTML = `
+          <strong>${result.status === 'pass' ? '✅' : '❌'} ${result.name}</strong>
+          ${result.error ? `<br><code>${result.error}</code>` : ''}
+          <small>(${result.time.toFixed(2)}ms)</small>
+        `;
+        output.appendChild(div);
+      }
+      
+      displaySummary() {
+        const passed = this.results.filter(r => r.status === 'pass').length;
+        const failed = this.results.filter(r => r.status === 'fail').length;
+        const total = this.results.length;
+        
+        console.log(`\n📊 Test Summary: ${passed}/${total} passed, ${failed} failed`);
+      }
+    }
+    
+    const assert = {
+      equal(actual, expected, message) {
+        if (actual !== expected) {
+          throw new Error(message || `Expected ${expected}, got ${actual}`);
+        }
+      },
+      ok(value, message) {
+        if (!value) {
+          throw new Error(message || `Expected truthy value, got ${value}`);
+        }
+      },
+      throws(fn, message) {
+        try {
+          fn();
+          throw new Error(message || 'Expected function to throw');
+        } catch (e) {
+          // Expected
+        }
+      }
+    };
+    
+    // Initialize test runner
+    const runner = new TestRunner();
+    const test = (name, fn) => runner.test(name, fn);
+    
+    // Test: Text Interpolation
+    test('Text interpolation renders values', async () => {
+      const container = document.createElement('div');
+      container.name = 'World';
+      container.count = 42;
+      
+      const render = bindTemplate('#interpolation-test', container);
+      render();
+      
+      assert.ok(container.textContent.includes('Hello World!'));
+      assert.ok(container.textContent.includes('Count: 42'));
+      
+      // For reactivity test, just check initial render works
+      // (color-scale-generator doesn't test reactivity in basic tests either)
+    });
+    
+    // Test: Property Binding
+    test('Property binding sets element properties', async () => {
+      const container = document.createElement('div');
+      container.inputValue = 'initial';
+      container.isDisabled = false;
+      
+      const render = bindTemplate('#property-binding-test', container);
+      render();
+      
+      const input = container.querySelector('input');
+      const button = container.querySelector('button');
+      
+      assert.equal(input.value, 'initial');
+      assert.equal(button.disabled, false);
+    });
+    
+    // Test: Event Binding
+    test('Event binding handles events', async () => {
+      const container = document.createElement('div');
+      let clickCount = 0;
+      let inputValue = '';
+      
+      container.handleClick = function() {
+        clickCount++;
+      };
+      container.handleInput = function(event) {
+        inputValue = event.target.value;
+      };
+      
+      const render = bindTemplate('#event-binding-test', container);
+      render();
+      
+      const button = container.querySelector('button');
+      const input = container.querySelector('input');
+      
+      button.click();
+      assert.equal(clickCount, 1);
+      
+      button.click();
+      assert.equal(clickCount, 2);
+      
+      input.value = 'test';
+      input.dispatchEvent(new Event('input'));
+      assert.equal(inputValue, 'test');
+    });
+    
+    // Test: Attribute Binding
+    test('Attribute binding sets/removes attributes', async () => {
+      const container = document.createElement('div');
+      container.tooltipText = 'Hello tooltip';
+      container.className = 'active';
+      
+      const render = bindTemplate('#attribute-binding-test', container);
+      render();
+      
+      const divs = container.querySelectorAll('div');
+      assert.equal(divs[0].getAttribute('title'), 'Hello tooltip');
+      assert.equal(divs[1].getAttribute('class'), 'active');
+    });
+    
+    // Test: Conditional Rendering
+    test('Conditional rendering shows/hides elements', async () => {
+      const container = document.createElement('div');
+      container.showElement = true;
+      
+      const render = bindTemplate('#conditional-test', container);
+      render();
+      
+      assert.ok(container.textContent.includes('I am visible'));
+      assert.ok(!container.textContent.includes('I am hidden'));
+    });
+    
+    // Test: List Rendering
+    test('List rendering creates elements for each item', async () => {
+      const container = document.createElement('div');
+      container.items = [
+        { name: 'Item 1', value: 10 },
+        { name: 'Item 2', value: 20 },
+        { name: 'Item 3', value: 30 }
+      ];
+      
+      const render = bindTemplate('#list-rendering-test', container);
+      render();
+      
+      const items = container.querySelectorAll('li');
+      assert.equal(items.length, 3);
+      assert.ok(items[0].textContent.includes('Item 1: 10'));
+      assert.ok(items[1].textContent.includes('Item 2: 20'));
+      assert.ok(items[2].textContent.includes('Item 3: 30'));
+    });
+    
+    // Test: DOM Utilities
+    test('parseToFragment creates document fragment', () => {
+      const html = '<div>Hello</div><span>World</span>';
+      const fragment = parseToFragment(html);
+      
+      assert.ok(fragment instanceof DocumentFragment);
+      assert.equal(fragment.childNodes.length, 2);
+      assert.equal(fragment.firstChild.tagName, 'DIV');
+      assert.equal(fragment.lastChild.tagName, 'SPAN');
+    });
+    
+    test('updateIDs prefixes IDs with lucide-', () => {
+      const div = document.createElement('div');
+      div.innerHTML = '<svg id="icon1"></svg><svg id="icon2"></svg>';
+      
+      updateIDs(div);
+      
+      const svgs = div.querySelectorAll('svg');
+      assert.equal(svgs[0].id, 'lucide-icon1');
+      assert.equal(svgs[1].id, 'lucide-icon2');
+    });
+    
+    // Test: Complex Scenario
+    test('Complex binding scenario works correctly', async () => {
+      const container = document.createElement('div');
+      
+      // Set up data
+      container.title = 'Search Results';
+      container.searchTerm = '';
+      container.items = [
+        { name: 'Apple', description: 'Fruit', disabled: false },
+        { name: 'Banana', description: 'Yellow fruit', disabled: false },
+        { name: 'Cherry', description: 'Red fruit', disabled: true }
+      ];
+      container.selectedItem = null;
+      
+      // Add computed property
+      Object.defineProperty(container, 'filteredResults', {
+        get() {
+          if (!this.searchTerm) return this.items;
+          return this.items.filter(item => 
+            item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+          );
+        }
+      });
+      
+      // Add methods
+      container.updateSearch = function(event) {
+        this.searchTerm = event.target.value;
+      };
+      
+      container.selectItem = function(item) {
+        if (!item.disabled) {
+          this.selectedItem = item;
+        }
+      };
+      
+      const render = bindTemplate('#complex-test', container);
+      render();
+      
+      assert.ok(container.textContent.includes('Search Results'));
+      assert.equal(container.querySelectorAll('li').length, 3);
+    });
+    
+    // Run all tests
+    runner.run();
+  </script>
+</body>
+</html>
