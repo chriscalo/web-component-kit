@@ -17,7 +17,7 @@ A reactive template binding system and web component toolkit for rapid HTML prot
 
 ```html
 <script type="module">
-  import { bindTemplate, reactive } from 'https://cdn.jsdelivr.net/gh/chriscalo/web-component-kit@v1.0.0/index.js';
+  import { bindTemplate, reactive } from "https://cdn.jsdelivr.net/gh/chriscalo/web-component-kit@v1.0.0/index.js";
 </script>
 ```
 
@@ -28,7 +28,7 @@ npm install @chriscalo/web-component-kit
 ```
 
 ```javascript
-import { bindTemplate, reactive } from '@chriscalo/web-component-kit';
+import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
 ```
 
 ## Quick Start
@@ -54,15 +54,15 @@ import { bindTemplate, reactive } from '@chriscalo/web-component-kit';
 
   <!-- Create reactive app -->
   <script type="module">
-    import { bindTemplate, reactive } from '@chriscalo/web-component-kit';
+    import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
     
     const app = reactive({
-      title: 'My Reactive App',
+      title: "My Reactive App",
       count: 0,
-      name: ''
+      name: ""
     });
     
-    const render = bindTemplate('#app', document.body);
+    const render = bindTemplate("#app", document.body);
     render();
   </script>
 </body>
@@ -161,7 +161,7 @@ Binds a template to a container with reactive data.
 
 ```javascript
 const data = reactive({ count: 0 });
-const render = bindTemplate('#my-template', document.body);
+const render = bindTemplate("#my-template", document.body);
 render(); // Start reactive updates
 ```
 
@@ -181,7 +181,7 @@ const state = reactive({
 Loads an HTML component file.
 
 ```javascript
-await loadComponent('./my-component.html');
+await loadComponent("./my-component.html");
 ```
 
 #### `processIncludes()`
@@ -197,7 +197,7 @@ await processIncludes();
 Waits for custom elements to be defined.
 
 ```javascript
-await componentsReady('ui-icon', 'my-component');
+await componentsReady("ui-icon", "my-component");
 ```
 
 ### DOM Utilities
@@ -207,7 +207,7 @@ await componentsReady('ui-icon', 'my-component');
 Parses HTML string to DocumentFragment.
 
 ```javascript
-const fragment = parseToFragment('<div>Hello</div>');
+const fragment = parseToFragment("<div>Hello</div>");
 ```
 
 #### `fetchText(url)`
@@ -215,7 +215,7 @@ const fragment = parseToFragment('<div>Hello</div>');
 Fetches text content from a URL.
 
 ```javascript
-const html = await fetchText('./component.html');
+const html = await fetchText("./component.html");
 ```
 
 ## Creating Components
@@ -241,18 +241,18 @@ Create reusable components in separate HTML files:
 </style>
 
 <script type="module">
-  import { bindTemplate, reactive } from '@chriscalo/web-component-kit';
+  import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
   
   class MyCounter extends HTMLElement {
     connectedCallback() {
       const data = reactive({ count: 0 });
-      const template = document.querySelector('template[name="my-counter"]');
+      const template = document.querySelector(`template[name="my-counter"]`);
       const render = bindTemplate(template, this);
       render();
     }
   }
   
-  customElements.define('my-counter', MyCounter);
+  customElements.define("my-counter", MyCounter);
 </script>
 ```
 

@@ -253,88 +253,88 @@
     });
     
     // Test: Attribute Binding
-    test('Attribute binding sets/removes attributes', async () => {
-      const container = document.createElement('div');
-      container.tooltipText = 'Hello tooltip';
-      container.className = 'active';
+    test("Attribute binding sets/removes attributes", async () => {
+      const container = document.createElement("div");
+      container.tooltipText = "Hello tooltip";
+      container.className = "active";
       
-      const render = bindTemplate('#attribute-binding-test', container);
+      const render = bindTemplate("#attribute-binding-test", container);
       render();
       
-      const divs = container.querySelectorAll('div');
-      assert.equal(divs[0].getAttribute('title'), 'Hello tooltip');
-      assert.equal(divs[1].getAttribute('class'), 'active');
+      const divs = container.querySelectorAll("div");
+      assert.equal(divs[0].getAttribute("title"), "Hello tooltip");
+      assert.equal(divs[1].getAttribute("class"), "active");
     });
     
     // Test: Conditional Rendering
-    test('Conditional rendering shows/hides elements', async () => {
-      const container = document.createElement('div');
+    test("Conditional rendering shows/hides elements", async () => {
+      const container = document.createElement("div");
       container.showElement = true;
       
-      const render = bindTemplate('#conditional-test', container);
+      const render = bindTemplate("#conditional-test", container);
       render();
       
-      assert.ok(container.textContent.includes('I am visible'));
-      assert.ok(!container.textContent.includes('I am hidden'));
+      assert.ok(container.textContent.includes("I am visible"));
+      assert.ok(!container.textContent.includes("I am hidden"));
     });
     
     // Test: List Rendering
-    test('List rendering creates elements for each item', async () => {
-      const container = document.createElement('div');
+    test("List rendering creates elements for each item", async () => {
+      const container = document.createElement("div");
       container.items = [
-        { name: 'Item 1', value: 10 },
-        { name: 'Item 2', value: 20 },
-        { name: 'Item 3', value: 30 }
+        { name: "Item 1", value: 10 },
+        { name: "Item 2", value: 20 },
+        { name: "Item 3", value: 30 }
       ];
       
-      const render = bindTemplate('#list-rendering-test', container);
+      const render = bindTemplate("#list-rendering-test", container);
       render();
       
-      const items = container.querySelectorAll('li');
+      const items = container.querySelectorAll("li");
       assert.equal(items.length, 3);
-      assert.ok(items[0].textContent.includes('Item 1: 10'));
-      assert.ok(items[1].textContent.includes('Item 2: 20'));
-      assert.ok(items[2].textContent.includes('Item 3: 30'));
+      assert.ok(items[0].textContent.includes("Item 1: 10"));
+      assert.ok(items[1].textContent.includes("Item 2: 20"));
+      assert.ok(items[2].textContent.includes("Item 3: 30"));
     });
     
     // Test: DOM Utilities
-    test('parseToFragment creates document fragment', () => {
-      const html = '<div>Hello</div><span>World</span>';
+    test("parseToFragment creates document fragment", () => {
+      const html = "<div>Hello</div><span>World</span>";
       const fragment = parseToFragment(html);
       
       assert.ok(fragment instanceof DocumentFragment);
       assert.equal(fragment.childNodes.length, 2);
-      assert.equal(fragment.firstChild.tagName, 'DIV');
-      assert.equal(fragment.lastChild.tagName, 'SPAN');
+      assert.equal(fragment.firstChild.tagName, "DIV");
+      assert.equal(fragment.lastChild.tagName, "SPAN");
     });
     
-    test('updateIDs prefixes IDs with lucide-', () => {
-      const div = document.createElement('div');
-      div.innerHTML = '<svg id="icon1"></svg><svg id="icon2"></svg>';
+    test(`updateIDs prefixes IDs with lucide-`, () => {
+      const div = document.createElement("div");
+      div.innerHTML = `<svg id="icon1"></svg><svg id="icon2"></svg>`;
       
       updateIDs(div);
       
-      const svgs = div.querySelectorAll('svg');
-      assert.equal(svgs[0].id, 'lucide-icon1');
-      assert.equal(svgs[1].id, 'lucide-icon2');
+      const svgs = div.querySelectorAll("svg");
+      assert.equal(svgs[0].id, "lucide-icon1");
+      assert.equal(svgs[1].id, "lucide-icon2");
     });
     
     // Test: Complex Scenario
-    test('Complex binding scenario works correctly', async () => {
-      const container = document.createElement('div');
+    test("Complex binding scenario works correctly", async () => {
+      const container = document.createElement("div");
       
       // Set up data
-      container.title = 'Search Results';
-      container.searchTerm = '';
+      container.title = "Search Results";
+      container.searchTerm = "";
       container.items = [
-        { name: 'Apple', description: 'Fruit', disabled: false },
-        { name: 'Banana', description: 'Yellow fruit', disabled: false },
-        { name: 'Cherry', description: 'Red fruit', disabled: true }
+        { name: "Apple", description: "Fruit", disabled: false },
+        { name: "Banana", description: "Yellow fruit", disabled: false },
+        { name: "Cherry", description: "Red fruit", disabled: true }
       ];
       container.selectedItem = null;
       
       // Add computed property
-      Object.defineProperty(container, 'filteredResults', {
+      Object.defineProperty(container, "filteredResults", {
         get() {
           if (!this.searchTerm) return this.items;
           return this.items.filter(item => 
@@ -354,11 +354,11 @@
         }
       };
       
-      const render = bindTemplate('#complex-test', container);
+      const render = bindTemplate("#complex-test", container);
       render();
       
-      assert.ok(container.textContent.includes('Search Results'));
-      assert.equal(container.querySelectorAll('li').length, 3);
+      assert.ok(container.textContent.includes("Search Results"));
+      assert.equal(container.querySelectorAll("li").length, 3);
     });
     
     // Run all tests
