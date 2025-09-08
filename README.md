@@ -36,36 +36,36 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <title>My App</title>
-</head>
-<body>
-  <!-- Define a template -->
-  <template id="app">
-    <div>
-      <h1>{{ title }}</h1>
-      <button on:click="count++">
-        Clicked {{ count }} times
-      </button>
-      <input .value="name" on:input="name = event.target.value">
-      <p @if="name">Hello, {{ name }}!</p>
-    </div>
-  </template>
-
-  <!-- Create reactive app -->
-  <script type="module">
-    import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
-    
-    const app = reactive({
-      title: "My Reactive App",
-      count: 0,
-      name: ""
-    });
-    
-    const render = bindTemplate("#app", document.body);
-    render();
-  </script>
-</body>
+  <head>
+    <title>My App</title>
+  </head>
+  <body>
+    <!-- Define a template -->
+    <template id="app">
+      <div>
+        <h1>{{ title }}</h1>
+        <button on:click="count++">
+          Clicked {{ count }} times
+        </button>
+        <input .value="name" on:input="name = event.target.value">
+        <p @if="name">Hello, {{ name }}!</p>
+      </div>
+    </template>
+  
+    <!-- Create reactive app -->
+    <script type="module">
+      import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
+      
+      const app = reactive({
+        title: "My Reactive App",
+        count: 0,
+        name: ""
+      });
+      
+      const render = bindTemplate("#app", document.body);
+      render();
+    </script>
+  </body>
 </html>
 ```
 
