@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Fixed Examples</title>
+</head>
+<body>
+  <h1>Testing Fixed bindTemplate Examples</h1>
+  
+  <!-- Test 1: API Reference Example -->
+  <h2>API Reference Example</h2>
+  <template id="api-template">
+    <div>Count: {{ count }}</div>
+    <button on:click="count++">Increment</button>
+  </template>
+  
+  <!-- Test 2: Quick Start Example -->
+  <h2>Quick Start Example</h2>
+  <template id="quick-start-template">
+    <div>
+      <h3>{{ title }}</h3>
+      <button on:click="count++">
+        Clicked {{ count }} times
+      </button>
+      <input .value="name" on:input="name = event.target.value">
+      <p @if="name">Hello, {{ name }}!</p>
+    </div>
+  </template>
+
+  <script type="module">
+    import { bindTemplate, reactive } from "/index.js";
+    
+    console.log("Testing fixed examples...");
+    
+    // Test 1: API Reference Example (fixed)
+    console.log("=== Test 1: API Reference Example ===");
+    const data = reactive({ count: 0 });
+    const container = document.createElement('div');
+    Object.assign(container, data);
+    document.body.appendChild(container);
+    const render = bindTemplate("#api-template", container);
+    render(); // Start reactive updates
+    console.log("API example container HTML:", container.innerHTML);
+    
+    // Test reactivity
+    setTimeout(() => {
+      data.count = 42;
+      console.log("After updating count to 42:", container.innerHTML);
+    }, 100);
+    
+    // Test 2: Quick Start Example (fixed)
+    console.log("=== Test 2: Quick Start Example ===");
+    const app = reactive({
+      title: "My Reactive App",
+      count: 0,
+      name: ""
+    });
+    
+    // Create a separate container for this test (since we already used document.body)
+    const quickStartContainer = document.createElement('div');
+    Object.assign(quickStartContainer, app);
+    document.body.appendChild(quickStartContainer);
+    const render2 = bindTemplate("#quick-start-template", quickStartContainer);
+    render2();
+    console.log("Quick start example HTML:", quickStartContainer.innerHTML);
+    
+    // Test reactivity
+    setTimeout(() => {
+      app.name = "Test User";
+      app.count = 5;
+      console.log("After updating quick start data:", quickStartContainer.innerHTML);
+    }, 200);
+  </script>
+</body>
+</html>

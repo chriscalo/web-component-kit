@@ -62,6 +62,8 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
       name: ""
     });
     
+    // Mix reactive data with document.body for binding context
+    Object.assign(document.body, app);
     const render = bindTemplate("#app", document.body);
     render();
   </script>
@@ -155,13 +157,16 @@ The kit includes a powerful icon component using Lucide icons:
 
 ### Core Functions
 
-#### `bindTemplate(selector, container)`
+#### `bindTemplate(selector, instance)`
 
-Binds a template to a container with reactive data.
+Binds a template to a DOM element with reactive data. The second parameter serves as both the binding context (containing the data) and the container (where template content is appended).
 
 ```javascript
 const data = reactive({ count: 0 });
-const render = bindTemplate("#my-template", document.body);
+const container = document.createElement('div');
+Object.assign(container, data);
+document.body.appendChild(container);
+const render = bindTemplate("#my-template", container);
 render(); // Start reactive updates
 ```
 
@@ -246,6 +251,7 @@ Create reusable components in separate HTML files:
   class MyCounter extends HTMLElement {
     connectedCallback() {
       const data = reactive({ count: 0 });
+      Object.assign(this, data);
       const template = document.querySelector(`template[name="my-counter"]`);
       const render = bindTemplate(template, this);
       render();
