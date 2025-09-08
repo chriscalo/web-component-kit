@@ -149,7 +149,7 @@ Binds a template to a data instance with reactive updates.
 
 ```javascript
 const data = reactive({ count: 0 });
-const render = bindTemplate('#my-template', container);
+const render = bindTemplate("#my-template", container);
 render(); // Initial render and start reactive updates
 ```
 
@@ -157,14 +157,14 @@ render(); // Initial render and start reactive updates
 Loads an HTML component file and injects its parts into the document.
 
 ```javascript
-await loadComponent('./my-component.html');
+await loadComponent("./my-component.html");
 ```
 
 #### `componentsReady(...names)`
 Waits for custom elements to be defined.
 
 ```javascript
-await componentsReady('ui-icon', 'my-component');
+await componentsReady("ui-icon", "my-component");
 ```
 
 ### DOM Utilities
@@ -211,7 +211,7 @@ The library re-exports Vue's reactivity functions:
 
 <script>
 const data = reactive({ count: 0 });
-bindTemplate('#counter', document.body)();
+bindTemplate("#counter", document.body)();
 </script>
 ```
 

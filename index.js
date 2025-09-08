@@ -11,7 +11,7 @@
  */
 
 // Import Vue reactivity from CDN for browser usage
-const vueReactivityUrl = 'https://unpkg.com/@vue/reactivity@3.4.21/dist/reactivity.esm-browser.prod.js';
+const vueReactivityUrl = "https://unpkg.com/@vue/reactivity@3.4.21/dist/reactivity.esm-browser.prod.js";
 const vueModule = await import(vueReactivityUrl);
 const { reactive, effect } = vueModule;
 
@@ -79,13 +79,13 @@ export class InterpolationPlugin extends BindingPlugin {
     while ((match = regex.exec(text)) !== null) {
       if (match.index > lastIndex) {
         parts.push({
-          type: 'static',
+          type: "static",
           content: text.slice(lastIndex, match.index),
         });
       }
       
       parts.push({
-        type: 'expression',
+        type: "expression",
         content: match[1].trim(),
         // literal double curlies breaks VS Code syntax highlighting
         placeholder: "{".repeat(2) + match[1] + "}".repeat(2),
@@ -96,7 +96,7 @@ export class InterpolationPlugin extends BindingPlugin {
     
     if (lastIndex < text.length) {
       parts.push({
-        type: 'static',
+        type: "static",
         content: text.slice(lastIndex),
       });
     }
@@ -107,7 +107,7 @@ export class InterpolationPlugin extends BindingPlugin {
     
     parts.forEach(part => {
       const node = document.createTextNode(
-        part.type === 'static' ? part.content : part.placeholder
+        part.type === "static" ? part.content : part.placeholder
       );
       parent.insertBefore(node, nextSibling);
       nodes.push({
@@ -126,11 +126,11 @@ export class InterpolationPlugin extends BindingPlugin {
   
   update(originalTextNode, instance, metadata) {
     metadata.parts.forEach(part => {
-      if (part.type === 'expression') {
+      if (part.type === "expression") {
         try {
-          const func = new Function('instance', `with (instance) { return ${part.content}; }`);
+          const func = new Function("instance", `with (instance) { return ${part.content}; }`);
           const value = func(instance);
-          part.node.textContent = value != null ? String(value) : '';
+          part.node.textContent = value != null ? String(value) : "";
         } catch (error) {
           part.node.textContent = part.placeholder;
         }
@@ -166,7 +166,7 @@ export class PropertyBindingPlugin extends BindingPlugin {
   
   initialize({ element, attribute }, instance) {
     const expression = element.getAttribute(attribute);
-    const propName = attribute.slice(1); // Remove the '.'
+    const propName = attribute.slice(1); // Remove the "."
     
     return {
       attribute,
@@ -225,7 +225,7 @@ export class EventBindingPlugin extends BindingPlugin {
   initialize({ element, attribute }, instance) {
     const expression = element.getAttribute(attribute);
 
-    const eventName = attribute.slice(3); // Remove 'on:'
+    const eventName = attribute.slice(3); // Remove "on:"
     
     const handler = (event) => {
       try {
@@ -372,14 +372,14 @@ export class ConditionalRenderingPlugin extends BindingPlugin {
       
       if (shouldShow && !metadata.isVisible) {
         // Show element - recreate from original HTML and re-bind
-        const tempDiv = document.createElement('div');
+        const tempDiv = document.createElement("div");
         tempDiv.innerHTML = metadata.originalHTML;
         const newElement = tempDiv.firstElementChild;
         
         // Re-discover and initialize bindings for the new element
         const nestedBindings = [];
         for (const [name, plugin] of bindingPlugins) {
-          if (plugin.constructor.name === 'ConditionalRenderingPlugin') continue;
+          if (plugin.constructor.name === "ConditionalRenderingPlugin") continue;
           const elements = plugin.discover(newElement);
           for (const nestedElement of elements) {
             const domElement = nestedElement.element || nestedElement;
@@ -453,16 +453,16 @@ export class TwoWayBindingPlugin extends BindingPlugin {
   
   initialize({ element, attribute }, instance) {
     const expression = element.getAttribute(attribute);
-    const [binding, eventName] = attribute.split(':');
+    const [binding, eventName] = attribute.split(":");
     
-    let isProperty = binding.startsWith('.');
-    let isAttribute = binding.startsWith('[') && binding.endsWith(']');
+    let isProperty = binding.startsWith(".");
+    let isAttribute = binding.startsWith("[") && binding.endsWith("]");
     let bindingName;
     
     if (isProperty) {
-      bindingName = binding.slice(1); // Remove '.'
+      bindingName = binding.slice(1); // Remove "."
     } else if (isAttribute) {
-      bindingName = binding.slice(1, -1); // Remove '[' and ']'
+      bindingName = binding.slice(1, -1); // Remove "[" and "]"
     }
     
     // Set up the initial binding (property or attribute)
@@ -575,7 +575,7 @@ export class ListRenderingPlugin extends BindingPlugin {
   initialize({ element, attribute }, instance) {
     const expression = element.getAttribute(attribute);
     // Parse "@for" syntax: "item in items"
-    const [itemVar, , iterableExpr] = expression.split(' ');
+    const [itemVar, , iterableExpr] = expression.split(" ");
     
     // Store the original template
     const template = element.cloneNode(true);
@@ -623,7 +623,7 @@ export class ListRenderingPlugin extends BindingPlugin {
       // Handle different iterable types
       if (Array.isArray(items)) {
         // Arrays work as-is
-      } else if (items && typeof items === 'object') {
+      } else if (items && typeof items === "object") {
         // Convert object to array of values
         items = Object.values(items);
       } else {
@@ -680,7 +680,7 @@ export class ListRenderingPlugin extends BindingPlugin {
               }
             `);
             const value = func(scope);
-            return value != null ? String(value) : '';
+            return value != null ? String(value) : "";
           } catch (error) {
             return match; // Return placeholder on error
           }
@@ -704,7 +704,7 @@ export class ListRenderingPlugin extends BindingPlugin {
     elements.forEach(elemNode => {
       const attributes = Array.from(elemNode.attributes);
       attributes.forEach(attr => {
-        if (attr.name.startsWith('[') && attr.name.endsWith(']')) {
+        if (attr.name.startsWith("[") && attr.name.endsWith("]")) {
           const attrName = attr.name.slice(1, -1);
           const expression = attr.value;
           
@@ -858,25 +858,25 @@ export async function loadComponent(url) {
   const fragment = parseToFragment(html);
   
   // Extract and inject templates
-  const templates = fragment.querySelectorAll('template');
+  const templates = fragment.querySelectorAll("template");
   templates.forEach(template => {
     document.body.appendChild(template);
   });
   
   // Extract and inject styles
-  const styles = fragment.querySelectorAll('style');
+  const styles = fragment.querySelectorAll("style");
   styles.forEach(style => {
     document.head.appendChild(style);
   });
   
   // Extract and execute scripts
-  const scripts = fragment.querySelectorAll('script');
+  const scripts = fragment.querySelectorAll("script");
   const scriptPromises = [];
   
   scripts.forEach(script => {
-    if (script.type === 'module' || !script.type) {
-      const newScript = document.createElement('script');
-      newScript.type = 'module';
+    if (script.type === "module" || !script.type) {
+      const newScript = document.createElement("script");
+      newScript.type = "module";
       newScript.textContent = script.textContent;
       scriptPromises.push(new Promise((resolve) => {
         newScript.onload = resolve;
@@ -893,11 +893,11 @@ export async function loadComponent(url) {
 
 // Process wck-include directives in the document
 export async function processIncludes() {
-  const includes = document.querySelectorAll('wck-include[src]');
+  const includes = document.querySelectorAll("wck-include[src]");
   const promises = [];
   
   for (const include of includes) {
-    const src = include.getAttribute('src');
+    const src = include.getAttribute("src");
     if (src) {
       promises.push(loadComponent(src).then(() => {
         // Remove the include element after loading
@@ -910,8 +910,8 @@ export async function processIncludes() {
 }
 
 // Auto-process includes on DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', processIncludes);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", processIncludes);
 } else {
   processIncludes();
 }
