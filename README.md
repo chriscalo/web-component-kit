@@ -43,12 +43,12 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
   <!-- Define a template -->
   <template id="my-app-template">
     <div>
-      <h1>{{ title }}</h1>
-      <button on:click="count++">
-        Clicked {{ count }} times
+      <h1>{{ data.title }}</h1>
+      <button on:click="data.count++">
+        Clicked {{ data.count }} times
       </button>
-      <input .value="name" on:input="name = event.target.value">
-      <p @if="name">Hello, {{ name }}!</p>
+      <input .value="data.name" on:input="data.name = event.target.value">
+      <p @if="data.name">Hello, {{ data.name }}!</p>
     </div>
   </template>
 
@@ -61,13 +61,12 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
     
     class MyApp extends HTMLElement {
       connectedCallback() {
-        const data = reactive({
+        this.data = reactive({
           title: "My Reactive App",
           count: 0,
           name: ""
         });
         
-        Object.assign(this, data);
         const render = bindTemplate("#my-app-template", this);
         render();
       }
@@ -173,8 +172,7 @@ Binds a template to a DOM element with reactive data. The second parameter serve
 // In a web component
 class MyComponent extends HTMLElement {
   connectedCallback() {
-    const data = reactive({ count: 0 });
-    Object.assign(this, data);
+    this.data = reactive({ count: 0 });
     const render = bindTemplate("#my-template", this);
     render(); // Start reactive updates
   }
@@ -244,9 +242,9 @@ Create reusable components in separate HTML files:
 <!-- my-counter.component.html -->
 <template name="my-counter">
   <div class="counter">
-    <button on:click="count--">-</button>
-    <span>{{ count }}</span>
-    <button on:click="count++">+</button>
+    <button on:click="data.count--">-</button>
+    <span>{{ data.count }}</span>
+    <button on:click="data.count++">+</button>
   </div>
 </template>
 
@@ -263,8 +261,7 @@ Create reusable components in separate HTML files:
   
   class MyCounter extends HTMLElement {
     connectedCallback() {
-      const data = reactive({ count: 0 });
-      Object.assign(this, data);
+      this.data = reactive({ count: 0 });
       const template = document.querySelector(`template[name="my-counter"]`);
       const render = bindTemplate(template, this);
       render();
