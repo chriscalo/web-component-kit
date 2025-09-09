@@ -41,7 +41,7 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
 </head>
 <body>
   <!-- Define a template -->
-  <template id="app">
+  <template id="my-app-template">
     <div>
       <h1>{{ title }}</h1>
       <button on:click="count++">
@@ -52,20 +52,28 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
     </div>
   </template>
 
-  <!-- Create reactive app -->
+  <!-- Use the custom element -->
+  <my-app></my-app>
+
+  <!-- Define the web component -->
   <script type="module">
     import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
     
-    const app = reactive({
-      title: "My Reactive App",
-      count: 0,
-      name: ""
-    });
+    class MyApp extends HTMLElement {
+      connectedCallback() {
+        const data = reactive({
+          title: "My Reactive App",
+          count: 0,
+          name: ""
+        });
+        
+        Object.assign(this, data);
+        const render = bindTemplate("#my-app-template", this);
+        render();
+      }
+    }
     
-    // Mix reactive data with document.body for binding context
-    Object.assign(document.body, app);
-    const render = bindTemplate("#app", document.body);
-    render();
+    customElements.define("my-app", MyApp);
   </script>
 </body>
 </html>
@@ -162,12 +170,17 @@ The kit includes a powerful icon component using Lucide icons:
 Binds a template to a DOM element with reactive data. The second parameter serves as both the binding context (containing the data) and the container (where template content is appended).
 
 ```javascript
-const data = reactive({ count: 0 });
-const container = document.createElement('div');
-Object.assign(container, data);
-document.body.appendChild(container);
-const render = bindTemplate("#my-template", container);
-render(); // Start reactive updates
+// In a web component
+class MyComponent extends HTMLElement {
+  connectedCallback() {
+    const data = reactive({ count: 0 });
+    Object.assign(this, data);
+    const render = bindTemplate("#my-template", this);
+    render(); // Start reactive updates
+  }
+}
+
+customElements.define("my-component", MyComponent);
 ```
 
 #### `reactive(object)`
