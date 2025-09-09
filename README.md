@@ -41,7 +41,7 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
 </head>
 <body>
   <!-- Define a template -->
-  <template id="my-app-template">
+  <template name="my-app-template">
     <div>
       <h1>{{ data.title }}</h1>
       <button on:click="data.count++">
@@ -64,10 +64,10 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
         this.data = reactive({
           title: "My Reactive App",
           count: 0,
-          name: ""
+          name: "",
         });
         
-        const render = bindTemplate("#my-app-template", this);
+        const render = bindTemplate(document.querySelector('template[name="my-app-template"]'), this);
         render();
       }
     }
@@ -173,7 +173,7 @@ Binds a template to a DOM element with reactive data. The second parameter serve
 class MyComponent extends HTMLElement {
   connectedCallback() {
     this.data = reactive({ count: 0 });
-    const render = bindTemplate("#my-template", this);
+    const render = bindTemplate(document.querySelector('template[name="my-template"]'), this);
     render(); // Start reactive updates
   }
 }
