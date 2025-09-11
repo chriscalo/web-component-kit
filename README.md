@@ -36,45 +36,45 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <title>My App</title>
-</head>
-<body>
-  <!-- Define a template -->
-  <template name="my-app-template">
-    <div>
-      <h1>{{ data.title }}</h1>
-      <button on:click="data.count++">
-        Clicked {{ data.count }} times
-      </button>
-      <input .value="data.name" on:input="data.name = event.target.value">
-      <p @if="data.name">Hello, {{ data.name }}!</p>
-    </div>
-  </template>
+  <head>
+    <title>My App</title>
+  </head>
+  <body>
+    <!-- Define a template -->
+    <template name="my-app-template">
+      <div>
+        <h1>{{ data.title }}</h1>
+        <button on:click="data.count++">
+          Clicked {{ data.count }} times
+        </button>
+        <input .value="data.name" on:input="data.name = event.target.value">
+        <p @if="data.name">Hello, {{ data.name }}!</p>
+      </div>
+    </template>
 
-  <!-- Use the custom element -->
-  <my-app></my-app>
+    <!-- Use the custom element -->
+    <my-app></my-app>
 
-  <!-- Define the web component -->
-  <script type="module">
-    import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
-    
-    class MyApp extends HTMLElement {
-      connectedCallback() {
-        this.data = reactive({
-          title: "My Reactive App",
-          count: 0,
-          name: "",
-        });
-        
-        const render = bindTemplate(document.querySelector('template[name="my-app-template"]'), this);
-        render();
+    <!-- Define the web component -->
+    <script type="module">
+      import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
+      
+      class MyApp extends HTMLElement {
+        connectedCallback() {
+          this.data = reactive({
+            title: "My Reactive App",
+            count: 0,
+            name: "",
+          });
+          
+          const render = bindTemplate(document.querySelector('template[name="my-app-template"]'), this);
+          render();
+        }
       }
-    }
-    
-    customElements.define("my-app", MyApp);
-  </script>
-</body>
+      
+      customElements.define("my-app", MyApp);
+    </script>
+  </body>
 </html>
 ```
 
