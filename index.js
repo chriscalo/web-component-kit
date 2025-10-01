@@ -10,10 +10,8 @@
  * @requires @vue/reactivity
  */
 
-// Import Vue reactivity from CDN for browser usage
-const vueReactivityUrl = "https://unpkg.com/@vue/reactivity@3.4.21/dist/reactivity.esm-browser.prod.js";
-const vueModule = await import(vueReactivityUrl);
-const { reactive, effect } = vueModule;
+// Import Vue reactivity from npm package
+import { reactive, effect } from "@vue/reactivity";
 
 // Base plugin class
 export class BindingPlugin {
