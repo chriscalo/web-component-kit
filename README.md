@@ -8,7 +8,7 @@ A reactive template binding system and web component toolkit for rapid HTML prot
 - ⚡ **Reactive bindings** - Powered by Vue 3's reactivity system
 - 🎯 **Declarative syntax** - Vue/Angular-inspired template bindings
 - 🧩 **Web Components** - Build reusable custom elements
-- 📦 **Component loading** - Include HTML components with `<wck-include>`
+- 📦 **Component loading** - Include HTML components with `<ui-include>`
 - 🎨 **Icon system** - Beautiful Lucide icons out of the box
 
 ## Installation
@@ -136,12 +136,12 @@ import { bindTemplate, reactive } from "@chriscalo/web-component-kit";
 
 ## Component Loading
 
-Include HTML component files using the `<wck-include>` directive:
+Include HTML component files using the `<ui-include>` directive:
 
 ```html
 <!-- main.html -->
-<wck-include src="./my-component.html"></wck-include>
-<wck-include src="./ui-icon.component.html"></wck-include>
+<ui-include src="./my-component.html"></ui-include>
+<ui-include src="./ui-icon.component.html"></ui-include>
 ```
 
 Components are automatically loaded and injected into the document.
@@ -152,7 +152,7 @@ The kit includes a powerful icon component using Lucide icons:
 
 ```html
 <!-- Include the icon component -->
-<wck-include src="node_modules/@chriscalo/web-component-kit/ui-icon.component.html"></wck-include>
+<ui-include src="node_modules/@chriscalo/web-component-kit/ui-icon.component.html"></ui-include>
 
 <!-- Use icons -->
 <ui-icon name="home"></ui-icon>
@@ -202,7 +202,7 @@ await loadComponent("./my-component.html");
 
 #### `processIncludes()`
 
-Processes all `<wck-include>` elements in the document.
+Processes all `<ui-include>` elements in the document.
 
 ```javascript
 await processIncludes();
@@ -275,7 +275,7 @@ Create reusable components in separate HTML files:
 Use it in your app:
 
 ```html
-<wck-include src="./my-counter.component.html"></wck-include>
+<ui-include src="./my-counter.component.html"></ui-include>
 <my-counter></my-counter>
 ```
 
