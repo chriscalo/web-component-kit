@@ -891,9 +891,9 @@ export async function loadComponent(url) {
   await Promise.all(scriptPromises);
 }
 
-// Process wck-include directives in the document
+// Process ui-include directives in the document
 export async function processIncludes() {
-  const includes = document.querySelectorAll("wck-include[src]");
+  const includes = document.querySelectorAll("ui-include[src]");
   const promises = [];
   
   for (const include of includes) {
