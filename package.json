@@ -6,6 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "node --test --no-warnings index.test.js",
+    "test:pw": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
     "start": "npx http-server -p 3000 -c-1 -o"
   },
   "keywords": [
@@ -29,7 +32,8 @@
     "@vue/reactivity": "^3.4.21"
   },
   "devDependencies": {
-    "playwright": "^1.49.0",
-    "http-server": "^14.1.1"
+    "@playwright/test": "^1.55.1",
+    "http-server": "^14.1.1",
+    "playwright": "^1.49.0"
   }
 }

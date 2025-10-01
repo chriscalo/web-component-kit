@@ -59,9 +59,13 @@ describe("Web Component Kit Tests", () => {
       consoleMessages.push(text);
       console.log(text);
     });
+
+    page.on("pageerror", error => {
+      console.error("PAGE ERROR:", error.message);
+    });
     
     await page.goto(testUrl);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(3000);
     
     // Extract test results from console
     const testResults = [];
@@ -91,7 +95,9 @@ describe("Web Component Kit Tests", () => {
   
   test("run UI icon component tests from ui-icon.test.html", async () => {
     const testUrl = `http://localhost:${port}/ui-icon.test.html`;
-    page = await browser.newPage();
+    // Create new context to avoid component registration conflicts
+    const context = await browser.newContext();
+    page = await context.newPage();
     
     const consoleMessages = [];
     page.on("console", msg => {
@@ -99,9 +105,13 @@ describe("Web Component Kit Tests", () => {
       consoleMessages.push(text);
       console.log(text);
     });
+
+    page.on("pageerror", error => {
+      console.error("PAGE ERROR:", error.message);
+    });
     
     await page.goto(testUrl);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(3000);
     
     // Extract test results from console
     const testResults = [];
@@ -123,12 +133,13 @@ describe("Web Component Kit Tests", () => {
       const errorMessages = failedTests.map(t => `${t.name}: ${t.error}`).join("\n");
       throw new Error(`${failedTests.length} tests failed:\n${errorMessages}`);
     }
-    
+
     assert.ok(testResults.length > 0, "Should have test results");
-    
+
     await page.close();
+    await context.close();
   });
-  
+
   test("cleanup", async () => {
     if (browser) await browser.close();
     if (server) {

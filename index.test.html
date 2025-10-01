@@ -14,20 +14,6 @@
     h1 {
       color: #333;
     }
-    .test-result {
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.5rem;
-      background: #f5f5f5;
-    }
-    .test-result.pass {
-      background: #d4edda;
-      border: 1px solid #c3e6cb;
-    }
-    .test-result.fail {
-      background: #f8d7da;
-      border: 1px solid #f5c6cb;
-    }
     section[name="ui-test-sandbox"] {
       position: fixed;
       inset: 0;
@@ -38,48 +24,306 @@
 </head>
 <body>
   <h1>Web Component Kit - Core Tests</h1>
-  <div id="test-output"></div>
-  
+
+  <!-- Initialize window.tests BEFORE any module scripts load -->
+  <script>
+    window.tests = [];
+  </script>
+
   <!-- Test sandbox for UI tests -->
   <section name="ui-test-sandbox"></section>
-  
-  <!-- Test templates -->
-  <template id="interpolation-test">
+
+  <!-- Test: Text Interpolation -->
+  <template name="interpolation-test">
     <div>Hello {{ name }}!</div>
     <div>Count: {{ count }}</div>
   </template>
-  
-  <template id="property-binding-test">
+  <script type="module" name="interpolation-test">
+    import { bindTemplate } from "./index.js";
+
+    if (!window.tests) window.tests = [];
+    window.tests.push({
+      name: "Text interpolation renders values",
+      async run() {
+        const container = document.createElement("div");
+        container.name = "World";
+        container.count = 42;
+
+        const render = bindTemplate("[name='interpolation-test']", container);
+        render();
+
+        if (!container.textContent.includes("Hello World!")) {
+          throw new Error("Expected 'Hello World!' in rendered content");
+        }
+        if (!container.textContent.includes("Count: 42")) {
+          throw new Error("Expected 'Count: 42' in rendered content");
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: Property Binding -->
+  <template name="property-binding-test">
     <input .value="inputValue" type="text">
     <button .disabled="isDisabled">Click me</button>
   </template>
-  
-  <template id="event-binding-test">
+  <script type="module" name="property-binding-test">
+    import { bindTemplate } from "./index.js";
+
+    window.tests.push({
+      name: "Property binding sets element properties",
+      async run() {
+        const container = document.createElement("div");
+        container.inputValue = "initial";
+        container.isDisabled = false;
+
+        const render = bindTemplate("[name='property-binding-test']", container);
+        render();
+
+        const input = container.querySelector("input");
+        const button = container.querySelector("button");
+
+        if (input.value !== "initial") {
+          throw new Error(`Expected input value 'initial', got '${input.value}'`);
+        }
+        if (button.disabled !== false) {
+          throw new Error(`Expected button disabled false, got ${button.disabled}`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: Event Binding -->
+  <template name="event-binding-test">
     <button on:click="handleClick()">Click me</button>
     <input on:input="handleInput(event)" type="text">
   </template>
-  
-  <template id="attribute-binding-test">
+  <script type="module" name="event-binding-test">
+    import { bindTemplate } from "./index.js";
+
+    window.tests.push({
+      name: "Event binding handles events",
+      async run() {
+        const container = document.createElement("div");
+        let clickCount = 0;
+        let inputValue = "";
+
+        container.handleClick = function() {
+          clickCount++;
+        };
+        container.handleInput = function(event) {
+          inputValue = event.target.value;
+        };
+
+        const render = bindTemplate("[name='event-binding-test']", container);
+        render();
+
+        const button = container.querySelector("button");
+        const input = container.querySelector("input");
+
+        button.click();
+        if (clickCount !== 1) {
+          throw new Error(`Expected clickCount 1, got ${clickCount}`);
+        }
+
+        button.click();
+        if (clickCount !== 2) {
+          throw new Error(`Expected clickCount 2, got ${clickCount}`);
+        }
+
+        input.value = "test";
+        input.dispatchEvent(new Event("input"));
+        if (inputValue !== "test") {
+          throw new Error(`Expected inputValue 'test', got '${inputValue}'`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: Attribute Binding -->
+  <template name="attribute-binding-test">
     <div [title]="tooltipText">Hover me</div>
     <div [class]="className">Styled</div>
   </template>
-  
-  <template id="conditional-test">
+  <script type="module" name="attribute-binding-test">
+    import { bindTemplate } from "./index.js";
+
+    window.tests.push({
+      name: "Attribute binding sets/removes attributes",
+      async run() {
+        const container = document.createElement("div");
+        container.tooltipText = "Hello tooltip";
+        container.className = "active";
+
+        const render = bindTemplate("[name='attribute-binding-test']", container);
+        render();
+
+        const divs = container.querySelectorAll("div");
+        if (divs[0].getAttribute("title") !== "Hello tooltip") {
+          throw new Error(`Expected title 'Hello tooltip', got '${divs[0].getAttribute("title")}'`);
+        }
+        if (divs[1].getAttribute("class") !== "active") {
+          throw new Error(`Expected class 'active', got '${divs[1].getAttribute("class")}'`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: Conditional Rendering -->
+  <template name="conditional-test">
     <div @if="showElement">I am visible</div>
     <div @if="!showElement">I am hidden</div>
   </template>
-  
-  <template id="two-way-binding-test">
-    <input .value:input="modelValue" type="text">
-  </template>
-  
-  <template id="list-rendering-test">
+  <script type="module" name="conditional-test">
+    import { bindTemplate } from "./index.js";
+
+    window.tests.push({
+      name: "Conditional rendering shows/hides elements",
+      async run() {
+        const container = document.createElement("div");
+        container.showElement = true;
+
+        const render = bindTemplate("[name='conditional-test']", container);
+        render();
+
+        if (!container.textContent.includes("I am visible")) {
+          throw new Error("Expected 'I am visible' in rendered content");
+        }
+        if (container.textContent.includes("I am hidden")) {
+          throw new Error("Did not expect 'I am hidden' in rendered content");
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: List Rendering -->
+  <template name="list-rendering-test">
     <ul>
       <li @for="item in items">{{ item.name }}: {{ item.value }}</li>
     </ul>
   </template>
-  
-  <template id="complex-test">
+  <script type="module" name="list-rendering-test">
+    import { bindTemplate } from "./index.js";
+
+    window.tests.push({
+      name: "List rendering creates elements for each item",
+      async run() {
+        const container = document.createElement("div");
+        container.items = [
+          { name: "Item 1", value: 10 },
+          { name: "Item 2", value: 20 },
+          { name: "Item 3", value: 30 }
+        ];
+
+        const render = bindTemplate("[name='list-rendering-test']", container);
+        render();
+
+        const items = container.querySelectorAll("li");
+        if (items.length !== 3) {
+          throw new Error(`Expected 3 list items, got ${items.length}`);
+        }
+        if (!items[0].textContent.includes("Item 1: 10")) {
+          throw new Error(`Expected 'Item 1: 10' in first item, got '${items[0].textContent}'`);
+        }
+        if (!items[1].textContent.includes("Item 2: 20")) {
+          throw new Error(`Expected 'Item 2: 20' in second item, got '${items[1].textContent}'`);
+        }
+        if (!items[2].textContent.includes("Item 3: 30")) {
+          throw new Error(`Expected 'Item 3: 30' in third item, got '${items[2].textContent}'`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: Two-Way Binding -->
+  <template name="two-way-binding-test">
+    <input .value:input="modelValue" type="text">
+  </template>
+  <script type="module" name="two-way-binding-test">
+    import { bindTemplate, reactive } from "./index.js";
+
+    window.tests.push({
+      name: "Two-way binding syncs data and UI",
+      async run() {
+        const container = document.createElement("div");
+        const data = reactive({
+          modelValue: "initial"
+        });
+
+        // Bind data to container
+        Object.assign(container, data);
+
+        const render = bindTemplate("[name='two-way-binding-test']", container);
+        render();
+
+        const input = container.querySelector("input");
+        if (input.value !== "initial") {
+          throw new Error(`Expected input value 'initial', got '${input.value}'`);
+        }
+
+        // Simulate user input
+        input.value = "updated";
+        input.dispatchEvent(new Event("input"));
+
+        // Two-way binding should update the model
+        if (container.modelValue !== "updated") {
+          throw new Error(`Expected modelValue 'updated', got '${container.modelValue}'`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: DOM Utilities - parseToFragment -->
+  <script type="module" name="parse-to-fragment-test">
+    import { parseToFragment } from "./index.js";
+
+    window.tests.push({
+      name: "parseToFragment creates document fragment",
+      async run() {
+        const html = "<div>Hello</div><span>World</span>";
+        const fragment = parseToFragment(html);
+
+        if (!(fragment instanceof DocumentFragment)) {
+          throw new Error("Expected DocumentFragment instance");
+        }
+        if (fragment.childNodes.length !== 2) {
+          throw new Error(`Expected 2 child nodes, got ${fragment.childNodes.length}`);
+        }
+        if (fragment.firstChild.tagName !== "DIV") {
+          throw new Error(`Expected first child to be DIV, got ${fragment.firstChild.tagName}`);
+        }
+        if (fragment.lastChild.tagName !== "SPAN") {
+          throw new Error(`Expected last child to be SPAN, got ${fragment.lastChild.tagName}`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: DOM Utilities - updateIDs -->
+  <script type="module" name="update-ids-test">
+    import { updateIDs } from "./index.js";
+
+    window.tests.push({
+      name: "updateIDs prefixes IDs with lucide-",
+      async run() {
+        const div = document.createElement("div");
+        div.innerHTML = `<svg id="icon1"></svg><svg id="icon2"></svg>`;
+
+        updateIDs(div);
+
+        const svgs = div.querySelectorAll("svg");
+        if (svgs[0].id !== "lucide-icon1") {
+          throw new Error(`Expected id 'lucide-icon1', got '${svgs[0].id}'`);
+        }
+        if (svgs[1].id !== "lucide-icon2") {
+          throw new Error(`Expected id 'lucide-icon2', got '${svgs[1].id}'`);
+        }
+      }
+    });
+  </script>
+
+  <!-- Test: Complex Scenario -->
+  <template name="complex-test">
     <div>
       <h2>{{ title }}</h2>
       <input .value="searchTerm" on:input="updateSearch(event)">
@@ -96,273 +340,87 @@
       </div>
     </div>
   </template>
-  
-  <script type="module">
-    import { 
-      bindTemplate, 
-      reactive,
-      parseToFragment,
-      updateIDs,
-      fetchText,
-      componentsReady
-    } from "./index.js";
-    
-    // Simple test framework
-    class TestRunner {
-      constructor() {
-        this.tests = [];
-        this.results = [];
-      }
-      
-      test(name, fn) {
-        this.tests.push({ name, fn });
-      }
-      
+  <script type="module" name="complex-test">
+    import { bindTemplate } from "./index.js";
+
+    window.tests.push({
+      name: "Complex binding scenario works correctly",
       async run() {
-        const output = document.getElementById("test-output");
-        output.innerHTML = "";
-        
-        for (const test of this.tests) {
-          const result = { name: test.name };
-          const startTime = performance.now();
-          
-          try {
-            await test.fn();
-            result.status = "pass";
-            result.time = performance.now() - startTime;
-            console.log(`✅ ${test.name}`);
-          } catch (error) {
-            result.status = "fail";
-            result.error = error.message;
-            result.time = performance.now() - startTime;
-            console.error(`❌ ${test.name}:`, error);
+        const container = document.createElement("div");
+
+        // Set up data
+        container.title = "Search Results";
+        container.searchTerm = "";
+        container.items = [
+          { name: "Apple", description: "Fruit", disabled: false },
+          { name: "Banana", description: "Yellow fruit", disabled: false },
+          { name: "Cherry", description: "Red fruit", disabled: true }
+        ];
+        container.selectedItem = null;
+
+        // Add computed property
+        Object.defineProperty(container, "filteredResults", {
+          get() {
+            if (!this.searchTerm) return this.items;
+            return this.items.filter(item =>
+              item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+            );
           }
-          
-          this.results.push(result);
-          this.displayResult(result, output);
+        });
+
+        // Add methods
+        container.updateSearch = function(event) {
+          this.searchTerm = event.target.value;
+        };
+
+        container.selectItem = function(item) {
+          if (!item.disabled) {
+            this.selectedItem = item;
+          }
+        };
+
+        const render = bindTemplate("[name='complex-test']", container);
+        render();
+
+        if (!container.textContent.includes("Search Results")) {
+          throw new Error("Expected 'Search Results' in rendered content");
         }
-        
-        this.displaySummary();
+        if (container.querySelectorAll("li").length !== 3) {
+          throw new Error(`Expected 3 list items, got ${container.querySelectorAll("li").length}`);
+        }
       }
-      
-      displayResult(result, output) {
-        const div = document.createElement("div");
-        div.className = `test-result ${result.status}`;
-        div.innerHTML = `
-          <strong>${result.status === "pass" ? "✅" : "❌"} ${result.name}</strong>
-          ${result.error ? `<br><code>${result.error}</code>` : ""}
-          <small>(${result.time.toFixed(2)}ms)</small>
-        `;
-        output.appendChild(div);
+    });
+  </script>
+
+  <!-- Test Runner - Run all tests and log results -->
+  <script type="module">
+    // Ensure tests array exists
+    if (!window.tests) window.tests = [];
+
+    // Wait for all imports and module scripts to complete
+    await new Promise(resolve => {
+      if (document.readyState === 'complete') {
+        setTimeout(resolve, 500);
+      } else {
+        window.addEventListener('load', () => setTimeout(resolve, 500));
       }
-      
-      displaySummary() {
-        const passed = this.results.filter(r => r.status === "pass").length;
-        const failed = this.results.filter(r => r.status === "fail").length;
-        const total = this.results.length;
-        
-        console.log(`\n📊 Test Summary: ${passed}/${total} passed, ${failed} failed`);
+    });
+
+    console.log(`Loaded ${window.tests.length} tests`);
+    window.testsReady = true;
+
+    // Run all tests and log results (for Node.js test runner compatibility)
+    for (const test of window.tests) {
+      try {
+        await test.run();
+        console.log(`✅ ${test.name}`);
+      } catch (error) {
+        console.error(`❌ ${test.name}:`, error.message);
       }
     }
-    
-    const assert = {
-      equal(actual, expected, message) {
-        if (actual !== expected) {
-          throw new Error(message || `Expected ${expected}, got ${actual}`);
-        }
-      },
-      ok(value, message) {
-        if (!value) {
-          throw new Error(message || `Expected truthy value, got ${value}`);
-        }
-      },
-      throws(fn, message) {
-        try {
-          fn();
-          throw new Error(message || "Expected function to throw");
-        } catch (e) {
-          // Expected
-        }
-      }
-    };
-    
-    // Initialize test runner
-    const runner = new TestRunner();
-    const test = (name, fn) => runner.test(name, fn);
-    
-    // Test: Text Interpolation
-    test("Text interpolation renders values", async () => {
-      const container = document.createElement("div");
-      container.name = "World";
-      container.count = 42;
-      
-      const render = bindTemplate("#interpolation-test", container);
-      render();
-      
-      assert.ok(container.textContent.includes("Hello World!"));
-      assert.ok(container.textContent.includes("Count: 42"));
-      
-      // For reactivity test, just check initial render works
-      // (color-scale-generator doesn't test reactivity in basic tests either)
-    });
-    
-    // Test: Property Binding
-    test("Property binding sets element properties", async () => {
-      const container = document.createElement("div");
-      container.inputValue = "initial";
-      container.isDisabled = false;
-      
-      const render = bindTemplate("#property-binding-test", container);
-      render();
-      
-      const input = container.querySelector("input");
-      const button = container.querySelector("button");
-      
-      assert.equal(input.value, "initial");
-      assert.equal(button.disabled, false);
-    });
-    
-    // Test: Event Binding
-    test("Event binding handles events", async () => {
-      const container = document.createElement("div");
-      let clickCount = 0;
-      let inputValue = "";
-      
-      container.handleClick = function() {
-        clickCount++;
-      };
-      container.handleInput = function(event) {
-        inputValue = event.target.value;
-      };
-      
-      const render = bindTemplate("#event-binding-test", container);
-      render();
-      
-      const button = container.querySelector("button");
-      const input = container.querySelector("input");
-      
-      button.click();
-      assert.equal(clickCount, 1);
-      
-      button.click();
-      assert.equal(clickCount, 2);
-      
-      input.value = "test";
-      input.dispatchEvent(new Event("input"));
-      assert.equal(inputValue, "test");
-    });
-    
-    // Test: Attribute Binding
-    test("Attribute binding sets/removes attributes", async () => {
-      const container = document.createElement("div");
-      container.tooltipText = "Hello tooltip";
-      container.className = "active";
-      
-      const render = bindTemplate("#attribute-binding-test", container);
-      render();
-      
-      const divs = container.querySelectorAll("div");
-      assert.equal(divs[0].getAttribute("title"), "Hello tooltip");
-      assert.equal(divs[1].getAttribute("class"), "active");
-    });
-    
-    // Test: Conditional Rendering
-    test("Conditional rendering shows/hides elements", async () => {
-      const container = document.createElement("div");
-      container.showElement = true;
-      
-      const render = bindTemplate("#conditional-test", container);
-      render();
-      
-      assert.ok(container.textContent.includes("I am visible"));
-      assert.ok(!container.textContent.includes("I am hidden"));
-    });
-    
-    // Test: List Rendering
-    test("List rendering creates elements for each item", async () => {
-      const container = document.createElement("div");
-      container.items = [
-        { name: "Item 1", value: 10 },
-        { name: "Item 2", value: 20 },
-        { name: "Item 3", value: 30 }
-      ];
-      
-      const render = bindTemplate("#list-rendering-test", container);
-      render();
-      
-      const items = container.querySelectorAll("li");
-      assert.equal(items.length, 3);
-      assert.ok(items[0].textContent.includes("Item 1: 10"));
-      assert.ok(items[1].textContent.includes("Item 2: 20"));
-      assert.ok(items[2].textContent.includes("Item 3: 30"));
-    });
-    
-    // Test: DOM Utilities
-    test("parseToFragment creates document fragment", () => {
-      const html = "<div>Hello</div><span>World</span>";
-      const fragment = parseToFragment(html);
-      
-      assert.ok(fragment instanceof DocumentFragment);
-      assert.equal(fragment.childNodes.length, 2);
-      assert.equal(fragment.firstChild.tagName, "DIV");
-      assert.equal(fragment.lastChild.tagName, "SPAN");
-    });
-    
-    test(`updateIDs prefixes IDs with lucide-`, () => {
-      const div = document.createElement("div");
-      div.innerHTML = `<svg id="icon1"></svg><svg id="icon2"></svg>`;
-      
-      updateIDs(div);
-      
-      const svgs = div.querySelectorAll("svg");
-      assert.equal(svgs[0].id, "lucide-icon1");
-      assert.equal(svgs[1].id, "lucide-icon2");
-    });
-    
-    // Test: Complex Scenario
-    test("Complex binding scenario works correctly", async () => {
-      const container = document.createElement("div");
-      
-      // Set up data
-      container.title = "Search Results";
-      container.searchTerm = "";
-      container.items = [
-        { name: "Apple", description: "Fruit", disabled: false },
-        { name: "Banana", description: "Yellow fruit", disabled: false },
-        { name: "Cherry", description: "Red fruit", disabled: true }
-      ];
-      container.selectedItem = null;
-      
-      // Add computed property
-      Object.defineProperty(container, "filteredResults", {
-        get() {
-          if (!this.searchTerm) return this.items;
-          return this.items.filter(item => 
-            item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
-          );
-        }
-      });
-      
-      // Add methods
-      container.updateSearch = function(event) {
-        this.searchTerm = event.target.value;
-      };
-      
-      container.selectItem = function(item) {
-        if (!item.disabled) {
-          this.selectedItem = item;
-        }
-      };
-      
-      const render = bindTemplate("#complex-test", container);
-      render();
-      
-      assert.ok(container.textContent.includes("Search Results"));
-      assert.equal(container.querySelectorAll("li").length, 3);
-    });
-    
-    // Run all tests
-    runner.run();
+
+    // Summary
+    console.log(`\n📊 Test Summary: ${window.tests.length}/${window.tests.length} tests executed`);
   </script>
 </body>
 </html>
