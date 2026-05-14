@@ -52,14 +52,18 @@ describe("Web Component Kit Tests", () => {
   test("run core library tests from index.test.html", async () => {
     const testUrl = `http://localhost:${port}/index.test.html`;
     page = await browser.newPage();
-    
+
     const consoleMessages = [];
     page.on("console", msg => {
       const text = msg.text();
       consoleMessages.push(text);
       console.log(text);
     });
-    
+
+    page.on("pageerror", error => {
+      console.error("Page error:", error.message);
+    });
+
     await page.goto(testUrl);
     await page.waitForTimeout(1000);
     
@@ -92,14 +96,18 @@ describe("Web Component Kit Tests", () => {
   test("run UI icon component tests from ui-icon.test.html", async () => {
     const testUrl = `http://localhost:${port}/ui-icon.test.html`;
     page = await browser.newPage();
-    
+
     const consoleMessages = [];
     page.on("console", msg => {
       const text = msg.text();
       consoleMessages.push(text);
       console.log(text);
     });
-    
+
+    page.on("pageerror", error => {
+      console.error("Page error:", error.message);
+    });
+
     await page.goto(testUrl);
     await page.waitForTimeout(1000);
     

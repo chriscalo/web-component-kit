@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node --test --no-warnings index.test.js",
+    "build": "vite build",
+    "dev": "vite",
+    "test": "npm run build && node --test --no-warnings index.test.js",
     "start": "npx http-server -p 3000 -c-1 -o"
   },
   "keywords": [
@@ -26,10 +28,11 @@
     "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
-    "@vue/reactivity": "^3.4.21"
+    "@vue/reactivity": "^3.5.22"
   },
   "devDependencies": {
+    "http-server": "^14.1.1",
     "playwright": "^1.49.0",
-    "http-server": "^14.1.1"
+    "vite": "^7.1.7"
   }
 }
