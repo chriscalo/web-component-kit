@@ -65,8 +65,8 @@ describe("Web Component Kit Tests", () => {
     });
 
     await page.goto(testUrl);
-    await page.waitForTimeout(1000);
-    
+    await page.waitForTimeout(3000);
+
     // Extract test results from console
     const testResults = [];
     for (const message of consoleMessages) {
@@ -80,22 +80,24 @@ describe("Web Component Kit Tests", () => {
         testResults.push({ name, status: "fail", error });
       }
     }
-    
+
     // Check that all tests passed
     const failedTests = testResults.filter(r => r.status === "fail");
     if (failedTests.length > 0) {
       const errorMessages = failedTests.map(t => `${t.name}: ${t.error}`).join("\n");
       throw new Error(`${failedTests.length} tests failed:\n${errorMessages}`);
     }
-    
+
     assert.ok(testResults.length > 0, "Should have test results");
-    
+
     await page.close();
   });
-  
+
   test("run UI icon component tests from ui-icon.test.html", async () => {
     const testUrl = `http://localhost:${port}/ui-icon.test.html`;
-    page = await browser.newPage();
+    // Create new context to avoid component registration conflicts
+    const context = await browser.newContext();
+    page = await context.newPage();
 
     const consoleMessages = [];
     page.on("console", msg => {
@@ -109,8 +111,8 @@ describe("Web Component Kit Tests", () => {
     });
 
     await page.goto(testUrl);
-    await page.waitForTimeout(1000);
-    
+    await page.waitForTimeout(3000);
+
     // Extract test results from console
     const testResults = [];
     for (const message of consoleMessages) {
@@ -124,19 +126,20 @@ describe("Web Component Kit Tests", () => {
         testResults.push({ name, status: "fail", error });
       }
     }
-    
+
     // Check that all tests passed
     const failedTests = testResults.filter(r => r.status === "fail");
     if (failedTests.length > 0) {
       const errorMessages = failedTests.map(t => `${t.name}: ${t.error}`).join("\n");
       throw new Error(`${failedTests.length} tests failed:\n${errorMessages}`);
     }
-    
+
     assert.ok(testResults.length > 0, "Should have test results");
-    
+
     await page.close();
+    await context.close();
   });
-  
+
   test("cleanup", async () => {
     if (browser) await browser.close();
     if (server) {
